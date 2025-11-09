@@ -14,10 +14,10 @@ app.get('/', (req, res) => {
 
 const WooCommerce = require('./woocommerce');
 
-// Ruta para obtener productos de WooCommerce
+// Modificar la solicitud para incluir más productos
 app.get('/api/products', async (req, res) => {
   try {
-    const { data } = await WooCommerce.get('products');
+    const { data } = await WooCommerce.get('products', { per_page: 50 }); // Incrementar el límite a 50 productos
     res.json(data);
   } catch (error) {
     console.error('Error al obtener productos de WooCommerce:', error);
@@ -55,6 +55,18 @@ app.post('/api/orders', async (req, res) => {
   } catch (error) {
     console.error('Error al crear el pedido en WooCommerce:', error.response ? error.response.data : error.message);
     res.status(500).json({ message: 'Error al crear el pedido', details: error.response ? error.response.data : null });
+  }
+});
+
+// Endpoint para obtener productos con bajo inventario
+app.get('/api/low-stock', async (req, res) => {
+  try {
+    const { data } = await WooCommerce.get('products', { per_page: 50 });
+    const lowStockProducts = data.filter(product => product.stock_quantity && product.stock_quantity < 10); // Umbral de 10 unidades
+    res.json(lowStockProducts);
+  } catch (error) {
+    console.error('Error al obtener productos con bajo inventario:', error);
+    res.status(500).json({ message: 'Error al obtener productos con bajo inventario' });
   }
 });
 
